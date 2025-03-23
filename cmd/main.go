@@ -1,16 +1,18 @@
 package main
 
 import (
-	"github.com/batmanboxer/mockchatapp/api/handlers"
-	"github.com/gorilla/mux"
-	"net/http"
+	"github.com/batmanboxer/mockchatapp/api"
+	"github.com/batmanboxer/mockchatapp/internals/database/postgress"
+	"log"
 )
 
 func main() {
-	mux := mux.NewRouter()
+	postges, err := postgress.NewPostGres()
 
-	mux.HandleFunc("/login", handlers.WrapperHandler(handlers.LoginHandler))
-	mux.HandleFunc("/validate", handlers.WrapperHandler(handlers.ValidateHanlder))
+	if err != nil {
+		log.Fatal("unable to make connection to database")
+	}
 
-	http.ListenAndServe(":4000", mux)
+	api := api.NewApi(":4000", postges)
+	api.StartApi()
 }

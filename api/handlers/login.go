@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
-	auth "github.com/batmanboxer/mockchatapp/internals/authentication"
-	"github.com/batmanboxer/mockchatapp/models"
 	"net/http"
+	"github.com/batmanboxer/mockchatapp/internals/authentication"
+	"github.com/batmanboxer/mockchatapp/internals/utils"
+	"github.com/batmanboxer/mockchatapp/models"
 )
 
-func LoginHandler(w http.ResponseWriter, r *http.Request) error {
+func(handlers *Handlers) LoginHandler(w http.ResponseWriter, r *http.Request) error {
+  
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte("Method Not Allowed"))
@@ -34,7 +36,10 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) error {
 	sucess := models.LoginSucess{
 		Jwt: jwt,
 	}
-
-	json.NewEncoder(w).Encode(sucess)
+  err = utils.WriteJson(w,sucess)
+  
+  if err != nil{
+    return nil 
+  }
 	return nil
 }

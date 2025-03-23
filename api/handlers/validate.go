@@ -7,7 +7,7 @@ import (
 	"github.com/batmanboxer/mockchatapp/internals/authentication"
 )
 
-func ValidateHanlder(w http.ResponseWriter, r *http.Request) error {
+func(hanlders Handlers) ValidateHanlder(w http.ResponseWriter, r *http.Request) error {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte("Method Not Allowed"))
