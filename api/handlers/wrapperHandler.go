@@ -3,20 +3,20 @@ package handlers
 import (
 	"log"
 	"net/http"
-	"github.com/batmanboxer/mockchatapp/internals/database"
+	"github.com/batmanboxer/mockchatapp/internals/authentication"
 )
 
-type Handlers struct{
-  db database.Storage
+type Handlers struct {
+	auth *auth.Auth
 }
 
-func NewHandlers(db database.Storage)*Handlers{
-  return &Handlers{db: db}
+func NewHandlers(auth *auth.Auth) *Handlers {
+	return &Handlers{auth:auth}
 }
 
 type customHttpHandler func(http.ResponseWriter, *http.Request) error
 
-func (h *Handlers)WrapperHandler(customHandler customHttpHandler) http.HandlerFunc {
+func (h *Handlers) WrapperHandler(customHandler customHttpHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := customHandler(w, r)
 		if err != nil {
@@ -25,5 +25,3 @@ func (h *Handlers)WrapperHandler(customHandler customHttpHandler) http.HandlerFu
 		}
 	}
 }
-
-

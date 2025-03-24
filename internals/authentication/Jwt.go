@@ -2,9 +2,11 @@ package auth
 
 import (
 	"errors"
-	"github.com/golang-jwt/jwt"
+	"log"
 	"strings"
 	"time"
+
+	"github.com/golang-jwt/jwt"
 )
 
 var secretKey = []byte("batmanboxer")
@@ -26,7 +28,8 @@ func ValidateJwt(tokenString string) (*jwt.StandardClaims, error) {
 		return nil, err
 	}
 
-	if claims, ok := token.Claims.(*jwt.StandardClaims); ok && token.Valid {
+	claims, ok := token.Claims.(*jwt.StandardClaims)
+	if ok && token.Valid && claims.Issuer == "batmanissuer" {
 		return claims, nil
 	}
 
@@ -38,12 +41,12 @@ func GenerateJwt(id string) (string, error) {
 	claims := jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
 		Issuer:    "batmanissuer",
-		Id:        "batman",
+		Id:        id,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := token.SignedString(secretKey)
-
+  log.Println(id)
 	if err != nil {
 		return "", err
 	}

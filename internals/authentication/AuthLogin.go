@@ -5,12 +5,16 @@ import (
 	"github.com/batmanboxer/mockchatapp/models"
 )
 
-func AuthLogin(data models.LoginData) (string, error) {
-  //Login Login Resides Here
-	if data.Email != "batman" {
-		return "", errors.New("email not matched")
+func (auth Auth) AuthLogin(data models.LoginData) (string, error) {
+	account, err := auth.Db.GetUserByEmail(data.Email)
+	if err != nil {
+		return "", err
 	}
-	jwt, err := GenerateJwt(data.Email)
+	if account.Password != data.Password {
+		return "", errors.New("wrong password")
+	}
+
+	jwt, err := GenerateJwt(account.ID.String())
 	if err != nil {
 		return "", err
 	}

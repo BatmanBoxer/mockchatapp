@@ -25,6 +25,7 @@ func NewPostGres() (*Postgres, error) {
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
+    verified BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
     );`
 	_, err = db.Exec(execute)
@@ -37,6 +38,7 @@ func NewPostGres() (*Postgres, error) {
 }
 
 func (postgres *Postgres) AddAccount(signUpData models.SignUpData) error {
+	//change password to password hash later and password should be a hash
 	addAccountQuery := `INSERT INTO users(name,email,password)VAlUES($1,$2,$3)`
 	_, err := postgres.db.Exec(addAccountQuery, signUpData.Name, signUpData.Email, signUpData.Password)
 
@@ -46,3 +48,22 @@ func (postgres *Postgres) AddAccount(signUpData models.SignUpData) error {
 
 	return nil
 }
+
+func (postgres *Postgres) GetUserByEmail(email string) (models.AccountModel, error) {
+	account := models.AccountModel{}
+	query := `SELECT * FROM users WHERE email = $1`
+	err := postgres.db.QueryRow(query, email).Scan(&account.ID,&account.Name,&account.Email,&account.Password,&account.CreatedAt)
+	if err != nil {
+		return account, err
+	}
+	return account, nil
+}
+
+
+
+
+
+
+
+
+

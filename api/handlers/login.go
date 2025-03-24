@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"github.com/batmanboxer/mockchatapp/internals/authentication"
 	"github.com/batmanboxer/mockchatapp/internals/utils"
 	"github.com/batmanboxer/mockchatapp/models"
 )
@@ -24,7 +23,7 @@ func(handlers *Handlers) LoginHandler(w http.ResponseWriter, r *http.Request) er
 		return nil
 	}
 
-	jwt, err := auth.AuthLogin(data)
+	jwt, err := handlers.auth.AuthLogin(data)
 
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)

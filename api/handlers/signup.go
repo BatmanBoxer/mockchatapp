@@ -39,13 +39,14 @@ func (handler *Handlers) SignUpHandler(w http.ResponseWriter, r *http.Request) e
 		w.Write([]byte("Email is Invalid"))
 		return nil
 	}
-
-	err = handler.db.AddAccount(data)
+     
+	err = handler.auth.AuthSignUp(data)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Unable to Add User"))
+		w.Write([]byte("Unable to Sign Up"))
 		return err
 	}
+
 	status := models.SignUpSucess{Status: common.SUCCESS}
 	utils.WriteJson(w, status)
 	return nil
