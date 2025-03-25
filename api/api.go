@@ -38,7 +38,7 @@ func (api *Api) StartApi() {
 	mux.HandleFunc("/login", handlers.WrapperHandler(handlers.LoginHandler))
 	mux.HandleFunc("/signup", handlers.WrapperHandler(handlers.SignUpHandler))
 	mux.HandleFunc("/validate", handlers.WrapperHandler(handlers.ValidateHanlder))
-	mux.HandleFunc("/listen/{id}", handlers.WrapperHandler(handlers.Listenhandler))
+	mux.HandleFunc("/listen/{id}", handlers.AuthenticationMiddleware(handlers.WrapperHandler(handlers.Listenhandler)))
 
 
 	http.ListenAndServe(":4000", mux)

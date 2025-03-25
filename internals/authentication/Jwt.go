@@ -11,10 +11,10 @@ import (
 
 var secretKey = []byte("batmanboxer")
 
-func ValidateJwt(tokenString string) (*jwt.StandardClaims, error) {
+func ValidateJwt(tokenString string) (string, error) {
 	parts := strings.Split(tokenString, ".")
 	if len(parts) != 3 {
-		return nil, errors.New("invalid token format")
+		return "", errors.New("invalid token format")
 	}
 
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.StandardClaims{},
@@ -25,15 +25,15 @@ func ValidateJwt(tokenString string) (*jwt.StandardClaims, error) {
 			return secretKey, nil
 		})
 	if err != nil {
-		return nil, err
+    return "", err
 	}
 
 	claims, ok := token.Claims.(*jwt.StandardClaims)
 	if ok && token.Valid && claims.Issuer == "batmanissuer" {
-		return claims, nil
+		return claims.Id, nil
 	}
 
-	return nil, errors.New("invalid token signature")
+	return "", errors.New("invalid token signature")
 }
 
 func GenerateJwt(id string) (string, error) {

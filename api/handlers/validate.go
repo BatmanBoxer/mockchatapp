@@ -33,6 +33,6 @@ func(hanlders Handlers) ValidateHanlder(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(data.Id))
+	w.Write([]byte(data))
 	return nil
 }
