@@ -6,15 +6,14 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/batmanboxer/mockchatapp/common"
 	"github.com/batmanboxer/mockchatapp/internals/authentication"
 	"github.com/batmanboxer/mockchatapp/internals/database"
 	"github.com/batmanboxer/mockchatapp/models"
 )
 
-type contextKey string
 
-const CONTEXTIDKEY contextKey = "userID"
-const userIDKey contextKey = "userID"
+
 
 type Handlers struct {
 	db     database.Storage
@@ -61,8 +60,8 @@ func (h *Handlers) AuthenticationMiddleware(next http.HandlerFunc) http.HandlerF
 		if err != nil {
 			http.Error(w, "Invalid JWT", http.StatusUnauthorized)
 		}
-		context.WithValue(r.Context(), CONTEXTIDKEY, userId)
+		ctx := context.WithValue(r.Context(), common.CONTEXTIDKEY, userId)
 
-		next(w, r)
+		next(w, r.WithContext(ctx))
 	}
 }

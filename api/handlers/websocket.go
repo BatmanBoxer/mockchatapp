@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/batmanboxer/mockchatapp/common"
 	"github.com/batmanboxer/mockchatapp/models"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -23,7 +25,7 @@ func (h *Handlers) addClient(chatRoomId string, client *models.Client) {
 
 	go h.handleMessages(client)
 	//go h.testMsg(client)
-  go h.listenMessage(chatRoomId,client)
+	go h.listenMessage(chatRoomId, client)
 }
 
 func (h *Handlers) removeClient(chatRoomId string, userId string) {
@@ -71,12 +73,12 @@ func (h *Handlers) listenMessage(roomID string, client *models.Client) {
 		//   break
 		// }
 
-		h.broadcastClient(roomID, string(p))
+		h.broadcastMessage(roomID, string(p))
 	}
 
 }
 
-func (h *Handlers) broadcastClient(roomId string, message string) {
+func (h *Handlers) broadcastMessage(roomId string, message string) {
 	h.mutex.RLock()
 	defer h.mutex.RUnlock()
 
@@ -108,9 +110,13 @@ func (h *Handlers) handleMessages(client *models.Client) {
 		}
 	}
 }
-func (h *Handlers) Listenhandler(w http.ResponseWriter, r *http.Request) error {
+
+func (h *Handlers) WebsocketHandler(w http.ResponseWriter, r *http.Request) error {
 	vars := mux.Vars(r)
-	clientId := vars["id"]
+	chatroomId := vars["id"]
+	userId := r.Context().Value(common.CONTEXTIDKEY)
+  stringUserId := userId.(string) 
+
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			return true
@@ -122,14 +128,16 @@ func (h *Handlers) Listenhandler(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	client := &models.Client{
-		Id:        clientId,
+		Id:        chatroomId,
 		Conn:      conn,
 		Messagech: make(chan string),
 		Closech:   make(chan struct{}),
 	}
 
-	h.addClient("testChatRoom", client)
+	h.addClient(chatroomId, client)
 
 	<-client.Closech
+	conn.Close()
+	h.removeClient(chatroomId,stringUserId)
 	return nil
 }

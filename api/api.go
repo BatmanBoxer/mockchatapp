@@ -1,13 +1,13 @@
 package api
 
 import (
-	"net/http"
-	"sync"
 	"github.com/batmanboxer/mockchatapp/api/handlers"
 	"github.com/batmanboxer/mockchatapp/internals/authentication"
 	"github.com/batmanboxer/mockchatapp/internals/database"
 	"github.com/batmanboxer/mockchatapp/models"
 	"github.com/gorilla/mux"
+	"net/http"
+	"sync"
 )
 
 type Api struct {
@@ -22,7 +22,7 @@ func NewApi(port string, storage database.Storage) *Api {
 		port:    port,
 		storage: storage,
 		conn:    make(map[string][]*models.Client),
-    mutex: &sync.RWMutex{},
+		mutex:   &sync.RWMutex{},
 	}
 }
 
@@ -31,15 +31,15 @@ func (api *Api) StartApi() {
 		api.storage,
 		&auth.Auth{Db: api.storage},
 		api.conn,
-    api.mutex,
+		api.mutex,
 	)
+
 	mux := mux.NewRouter()
 
 	mux.HandleFunc("/login", handlers.WrapperHandler(handlers.LoginHandler))
 	mux.HandleFunc("/signup", handlers.WrapperHandler(handlers.SignUpHandler))
 	mux.HandleFunc("/validate", handlers.WrapperHandler(handlers.ValidateHanlder))
-	mux.HandleFunc("/listen/{id}", handlers.AuthenticationMiddleware(handlers.WrapperHandler(handlers.Listenhandler)))
-
+	mux.HandleFunc("/listen/{id}", handlers.AuthenticationMiddleware(handlers.WrapperHandler(handlers.WebsocketHandler)))
 
 	http.ListenAndServe(":4000", mux)
 }
