@@ -1,8 +1,15 @@
 package models
 
-import "github.com/gorilla/websocket"
+import (
+	"sync"
+
+	"github.com/gorilla/websocket"
+)
 
 type Client struct {
-	conn *websocket.Conn
-	send chan []byte 
+  Id string
+	Conn *websocket.Conn
+  Messagech chan string
+  Closech chan struct{}
+  Mutex *sync.RWMutex
 }

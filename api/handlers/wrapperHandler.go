@@ -6,25 +6,29 @@ import (
 	"sync"
 
 	"github.com/batmanboxer/mockchatapp/internals/authentication"
-	"github.com/gorilla/websocket"
+	"github.com/batmanboxer/mockchatapp/internals/database"
+	"github.com/batmanboxer/mockchatapp/models"
 )
 
-type Client struct {
-	Conn    *websocket.Conn
-	Message chan string 
-}
 type Handlers struct {
+	db   database.Storage
 	auth *auth.Auth
-  conn *map[string]*Client
+	client map[string][]*models.Client
   mutex *sync.RWMutex
 }
 
-func NewHandlers(auth *auth.Auth,conn *map[string]*Client, mutex *sync.RWMutex) *Handlers {
+func NewHandlers(
+	db database.Storage,
+	auth *auth.Auth,
+	client map[string][]*models.Client,
+  mutex *sync.RWMutex,
+) *Handlers {
 	return &Handlers{
-    auth:auth,
-    conn: conn,
+		db:   db,
+		auth: auth,
+		client: client,
     mutex: mutex,
-  }
+	}
 }
 
 type customHttpHandler func(http.ResponseWriter, *http.Request) error

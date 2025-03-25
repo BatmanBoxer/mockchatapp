@@ -2,8 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"time"
 
+	"github.com/batmanboxer/mockchatapp/models"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
@@ -14,48 +17,77 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func (h *Handlers) AddClient(userID string, conn *websocket.Conn) {
+func (h *Handlers) addClient(chatRoomId string,client *models.Client) {
 	h.mutex.Lock()
-	defer h.mutex.Unlock()
+	h.mutex.Unlock()
 
-	client := &Client{
-		Conn:    conn,
-		Message: make(chan string),
-	}
-	(*h.conn)[userID] = client
+	h.client[chatRoomId] = append((h.client[chatRoomId]), client)
 
 	go h.handleMessages(client)
+  go h.testMsg(client)
 }
 
-func (h *Handlers) RemoveClient(userID string) {
+func (h *Handlers) removeClient(chatRoomId string, userId string) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 
-	client, ok := (*h.conn)[userID]
+	clients, ok := h.client[chatRoomId]
 	if !ok {
 		return
 	}
 
-	close(client.Message)
+	var updatedClients []*models.Client
+	for _, client := range clients {
+		if client.Id != userId {
+			updatedClients = append(updatedClients, client)
+		} else {
+			if client.Messagech != nil {
+				close(client.Messagech)
+			}
+		}
+	}
 
-	delete(*h.conn, userID)
+	if len(updatedClients) == 0 {
+		delete(h.client, chatRoomId)
+	} else {
+		h.client[chatRoomId] = updatedClients
+	}
 }
 
+func (h *Handlers) broadcastClient(roomId string, message string) {
+	h.mutex.Lock()
+	defer h.mutex.Unlock()
 
+	clients, ok := h.client[roomId]
+	if !ok {
+		return
+	}
 
-func (h *Handlers) handleMessages(client *Client) {
-	for message := range client.Message {
+	for _, client := range clients {
+		if client.Messagech != nil {
+			client.Messagech <- message
+		}
+	}
+}
+func (h *Handlers)testMsg(client *models.Client){
+  for {
+    client.Messagech <- "testing"
+    time.Sleep(2*time.Second) 
+  }
+}
+func (h *Handlers) handleMessages(client *models.Client) {
+	for message := range client.Messagech {
 		err := client.Conn.WriteMessage(websocket.TextMessage, []byte(message))
 		if err != nil {
-			fmt.Println("Error sending message to client", client.Message, err)
+			fmt.Println("Error sending message to client", client.Messagech, err)
 			return
 		}
 	}
 }
-
-func (h *Handlers)handleWebSocket(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) Listenhandler(w http.ResponseWriter, r *http.Request)error {
+  log.Println("got here")
 	vars := mux.Vars(r)
-	userID := vars["id"]
+	clientId := vars["id"]
 
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
@@ -65,16 +97,20 @@ func (h *Handlers)handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println("Error upgrading to WebSocket:", err)
-		return
+		return err
+	}	
+  client := &models.Client{
+    Id: clientId,
+		Conn:      conn,
+		Messagech: make(chan string),
+		Closech:   make(chan struct{}),
 	}
-	h.AddClient(userID, conn)
 
-	if err != nil {
-		fmt.Println("Error sending message:", err)
-  }
-  //make a broadcast msg function and client disscont
+	h.addClient("testChatRoom", client)
+  <-client.Closech
+ // conn.Close()
+  return nil
 }
-
 
 
 
