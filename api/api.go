@@ -3,7 +3,6 @@ package api
 import (
 	"net/http"
 	"sync"
-
 	"github.com/batmanboxer/mockchatapp/api/handlers"
 	"github.com/batmanboxer/mockchatapp/internals/authentication"
 	"github.com/batmanboxer/mockchatapp/internals/database"
