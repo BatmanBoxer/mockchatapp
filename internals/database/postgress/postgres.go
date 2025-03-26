@@ -20,7 +20,7 @@ func NewPostGres() (*Postgres, error) {
 	if err := db.Ping(); err != nil {
 		return nil, err
 	}
-	execute := `CREATE TABLE IF NOT EXISTS user (
+	execute := `CREATE TABLE IF NOT EXISTS users(
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
@@ -33,7 +33,7 @@ func NewPostGres() (*Postgres, error) {
 		return nil, err
 	}
 
-	execute = `CREATE TABLE IF NOT EXISTS chat (
+	execute = `CREATE TABLE IF NOT EXISTS chats(
     id SERIAL PRIMARY KEY,
     room_id TEXT NOT NULL,
     sender_id TEXT NOT NULL,
@@ -53,7 +53,7 @@ func NewPostGres() (*Postgres, error) {
 
 func (postgres *Postgres) AddAccount(signUpData models.SignUpData) error {
 	//change password to password hash later and password should be a hash
-	addAccountQuery := `INSERT INTO user(name,email,password)VAlUES($1,$2,$3)`
+	addAccountQuery := `INSERT INTO users(name,email,password)VAlUES($1,$2,$3)`
 	_, err := postgres.db.Exec(addAccountQuery, signUpData.Name, signUpData.Email, signUpData.Password)
 
 	return err
@@ -70,7 +70,7 @@ func (postgres *Postgres) GetUserByEmail(email string) (models.AccountModel, err
 }
 
 func (postgres *Postgres) AddMessage(messageModel models.MessageModel) error {
-	addAccountQuery := `INSERT INTO chat(room_id,sender_id,message)VAlUES($1,$2,$3)`
+	addAccountQuery := `INSERT INTO chats(room_id,sender_id,message)VAlUES($1,$2,$3)`
 	_, err := postgres.db.Exec(addAccountQuery, messageModel.RoomId, messageModel.SenderId, messageModel.Message)
 
 	return err
@@ -78,7 +78,7 @@ func (postgres *Postgres) AddMessage(messageModel models.MessageModel) error {
 
 func (postgres *Postgres) GetMessages(chatRoomId string, limit int, offset int) ([]models.MessageModel, error) {
 	Messages := []models.MessageModel{}
-	query := `SELECT * FROM chat ORDER BY created_at DESC WHERE room_id = $1 LIMIT $2 OFFSET $3`
+	query := `SELECT * FROM chats ORDER BY created_at DESC WHERE room_id = $1 LIMIT $2 OFFSET $3`
 	rows, err := postgres.db.Query(query, chatRoomId, limit, offset)
 
 	if err != nil {

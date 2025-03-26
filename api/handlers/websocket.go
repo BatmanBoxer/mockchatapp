@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -102,6 +103,7 @@ func (h *Handlers) broadcastMessage(roomId string, message string, client *model
 		SenderId: client.Id,
 	})
 	if err != nil {
+    log.Println(err.Error())
 		return
 	}
 
@@ -146,7 +148,7 @@ func (h *Handlers) WebsocketHandler(w http.ResponseWriter, r *http.Request) erro
 		return err
 	}
 	client := &models.Client{
-		Id:        chatroomId,
+		Id:        stringUserId,
 		Conn:      conn,
 		Messagech: make(chan string),
 		Closech:   make(chan struct{}),

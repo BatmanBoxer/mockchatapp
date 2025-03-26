@@ -10,7 +10,7 @@ func main() {
 	postges, err := postgress.NewPostGres()
 
 	if err != nil {
-		log.Fatal("unable to make connection to database")
+		log.Fatal(err.Error())
 	}
 
 	api := api.NewApi(":4000", postges)

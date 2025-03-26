@@ -60,8 +60,11 @@ func (h *Handlers) AuthenticationMiddleware(next http.HandlerFunc) http.HandlerF
 		if err != nil {
 			http.Error(w, "Invalid JWT", http.StatusUnauthorized)
 		}
+    //also check if this user exists in userdatabase
+
 		ctx := context.WithValue(r.Context(), common.CONTEXTIDKEY, userId)
 
 		next(w, r.WithContext(ctx))
 	}
 }
+
