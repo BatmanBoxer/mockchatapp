@@ -6,7 +6,7 @@ import (
 )
 
 func (auth Auth) AuthLogin(data models.LoginData) (string, error) {
-	account, err := auth.Db.GetUserByEmail(data.Email)
+	account, err := auth.AuthDb.GetUserByEmail(data.Email)
 	if err != nil {
 		return "", err
 	}

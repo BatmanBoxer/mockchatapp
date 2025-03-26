@@ -2,37 +2,37 @@ package handlers
 
 import (
 	"context"
+	"github.com/batmanboxer/mockchatapp/common"
+	"github.com/batmanboxer/mockchatapp/internals/authentication"
+	"github.com/batmanboxer/mockchatapp/models"
 	"log"
 	"net/http"
 	"sync"
-
-	"github.com/batmanboxer/mockchatapp/common"
-	"github.com/batmanboxer/mockchatapp/internals/authentication"
-	"github.com/batmanboxer/mockchatapp/internals/database"
-	"github.com/batmanboxer/mockchatapp/models"
 )
 
-
-
+type WebsocketStorage interface {
+	GetMessages(string, int, int) ([]models.MessageModel, error)
+	AddMessage(messageModel models.MessageModel) error
+}
 
 type Handlers struct {
-	db     database.Storage
-	auth   *auth.Auth
-	client map[string][]*models.Client
-	mutex  *sync.RWMutex
+	websocketStorage WebsocketStorage
+	auth             *auth.Auth
+	client           map[string][]*models.Client
+	mutex            *sync.RWMutex
 }
 
 func NewHandlers(
-	db database.Storage,
+	websocketStorage WebsocketStorage,
 	auth *auth.Auth,
 	client map[string][]*models.Client,
 	mutex *sync.RWMutex,
 ) *Handlers {
 	return &Handlers{
-		db:     db,
-		auth:   auth,
-		client: client,
-		mutex:  mutex,
+		websocketStorage: websocketStorage,
+		auth:             auth,
+		client:           client,
+		mutex:            mutex,
 	}
 }
 

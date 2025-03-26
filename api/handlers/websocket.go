@@ -23,9 +23,19 @@ func (h *Handlers) addClient(chatRoomId string, client *models.Client) {
 
 	h.client[chatRoomId] = append((h.client[chatRoomId]), client)
 
-	go h.handleMessages(client)
-	//go h.testMsg(client)
+	go h.handleMessages(client) 
+  //go h.testMsg(client)
 	go h.listenMessage(chatRoomId, client)
+}
+
+func (h *Handlers) initialMessage(chatRoomId string, client *models.Client, limit int) {
+	messages, err := h.websocketStorage.GetMessages(chatRoomId, limit, 0)
+	if err != nil {
+		return
+	}
+	for _, message := range messages {
+		client.Messagech <- message.Message
+	}
 }
 
 func (h *Handlers) removeClient(chatRoomId string, userId string) {
@@ -73,17 +83,25 @@ func (h *Handlers) listenMessage(roomID string, client *models.Client) {
 		//   break
 		// }
 
-		h.broadcastMessage(roomID, string(p))
+		h.broadcastMessage(roomID, string(p), client)
 	}
 
 }
 
-func (h *Handlers) broadcastMessage(roomId string, message string) {
+func (h *Handlers) broadcastMessage(roomId string, message string, client *models.Client) {
 	h.mutex.RLock()
 	defer h.mutex.RUnlock()
 
 	clients, ok := h.client[roomId]
 	if !ok {
+		return
+	}
+	err := h.websocketStorage.AddMessage(models.MessageModel{
+		RoomId:   roomId,
+		Message:  message,
+		SenderId: client.Id,
+	})
+	if err != nil {
 		return
 	}
 
@@ -115,7 +133,7 @@ func (h *Handlers) WebsocketHandler(w http.ResponseWriter, r *http.Request) erro
 	vars := mux.Vars(r)
 	chatroomId := vars["id"]
 	userId := r.Context().Value(common.CONTEXTIDKEY)
-  stringUserId := userId.(string) 
+	stringUserId := userId.(string)
 
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
@@ -138,6 +156,6 @@ func (h *Handlers) WebsocketHandler(w http.ResponseWriter, r *http.Request) erro
 
 	<-client.Closech
 	conn.Close()
-	h.removeClient(chatroomId,stringUserId)
+	h.removeClient(chatroomId, stringUserId)
 	return nil
 }

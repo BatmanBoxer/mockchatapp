@@ -3,21 +3,27 @@ package api
 import (
 	"github.com/batmanboxer/mockchatapp/api/handlers"
 	"github.com/batmanboxer/mockchatapp/internals/authentication"
-	"github.com/batmanboxer/mockchatapp/internals/database"
 	"github.com/batmanboxer/mockchatapp/models"
 	"github.com/gorilla/mux"
 	"net/http"
 	"sync"
 )
 
+type Storage interface {
+	AddAccount(models.SignUpData) error
+	GetUserByEmail(string) (models.AccountModel, error)
+	GetMessages(string, int, int) ([]models.MessageModel, error)
+  AddMessage(messageModel models.MessageModel) error
+}
+
 type Api struct {
 	port    string
-	storage database.Storage
+	storage Storage
 	conn    map[string][]*models.Client
 	mutex   *sync.RWMutex
 }
 
-func NewApi(port string, storage database.Storage) *Api {
+func NewApi(port string, storage Storage) *Api {
 	return &Api{
 		port:    port,
 		storage: storage,
@@ -27,9 +33,13 @@ func NewApi(port string, storage database.Storage) *Api {
 }
 
 func (api *Api) StartApi() {
+	auth := auth.Auth{
+		AuthDb: api.storage,
+	}
+
 	handlers := handlers.NewHandlers(
 		api.storage,
-		&auth.Auth{Db: api.storage},
+		&auth,
 		api.conn,
 		api.mutex,
 	)

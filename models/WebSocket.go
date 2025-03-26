@@ -3,11 +3,19 @@ package models
 import (
 	"github.com/gorilla/websocket"
 	"sync"
+	"time"
 )
 
-// remove sender later and check it via jwt
-type Message struct {
+type MessageData struct {
 	Message string
+}
+
+type MessageModel struct {
+	Id        string    `json:"id"`
+	SenderId  string    `json:"sender_id"`
+	RoomId    string    `json:"room_id"`
+	Message   string    `json:"message"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type Client struct {
