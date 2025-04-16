@@ -40,7 +40,7 @@ func (handler *Handlers) SignUpHandler(w http.ResponseWriter, r *http.Request) e
 		return nil
 	}
      
-	err = handler.auth.AuthSignUp(data)
+	err = handler.authManager.AuthSignUp(data)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Unable to Sign Up"))

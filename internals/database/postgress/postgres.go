@@ -88,7 +88,7 @@ func (postgres *Postgres) GetMessages(chatRoomId string, limit int, offset int) 
 	for rows.Next() {
 		message := models.MessageModel{}
 		rows.Scan(&message.Id, &message.RoomId, &message.SenderId, &message.Message, &message.CreatedAt)
-    Messages = append(Messages, message)
+		Messages = append(Messages, message)
 	}
 	return Messages, nil
 }

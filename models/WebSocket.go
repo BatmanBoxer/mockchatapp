@@ -1,9 +1,9 @@
 package models
 
 import (
-	"github.com/gorilla/websocket"
 	"sync"
 	"time"
+	"github.com/gorilla/websocket"
 )
 
 type MessageData struct {

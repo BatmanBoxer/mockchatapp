@@ -5,7 +5,7 @@ import (
 	"github.com/batmanboxer/mockchatapp/models"
 )
 
-func (auth Auth) AuthLogin(data models.LoginData) (string, error) {
+func (auth AuthManager) AuthLogin(data models.LoginData) (string, error) {
 	account, err := auth.AuthDb.GetUserByEmail(data.Email)
 	if err != nil {
 		return "", err

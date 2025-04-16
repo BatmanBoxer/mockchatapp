@@ -23,7 +23,7 @@ func(handlers *Handlers) LoginHandler(w http.ResponseWriter, r *http.Request) er
 		return nil
 	}
 
-	jwt, err := handlers.auth.AuthLogin(data)
+	jwt, err := handlers.authManager.AuthLogin(data)
 
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -42,3 +42,4 @@ func(handlers *Handlers) LoginHandler(w http.ResponseWriter, r *http.Request) er
   }
 	return nil
 }
+

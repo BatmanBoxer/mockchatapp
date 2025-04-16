@@ -2,37 +2,26 @@ package handlers
 
 import (
 	"context"
-	"github.com/batmanboxer/mockchatapp/common"
-	"github.com/batmanboxer/mockchatapp/internals/authentication"
-	"github.com/batmanboxer/mockchatapp/models"
 	"log"
 	"net/http"
-	"sync"
+
+	"github.com/batmanboxer/mockchatapp/common"
+	"github.com/batmanboxer/mockchatapp/internals/authentication"
+	"github.com/batmanboxer/mockchatapp/internals/websocker"
 )
 
-type WebsocketStorage interface {
-	GetMessages(string, int, int) ([]models.MessageModel, error)
-	AddMessage(messageModel models.MessageModel) error
-}
-
 type Handlers struct {
-	websocketStorage WebsocketStorage
-	auth             *auth.Auth
-	client           map[string][]*models.Client
-	mutex            *sync.RWMutex
+	webSocketManager *websocker.WebSocketManager
+	authManager      *auth.AuthManager
 }
 
 func NewHandlers(
-	websocketStorage WebsocketStorage,
-	auth *auth.Auth,
-	client map[string][]*models.Client,
-	mutex *sync.RWMutex,
+	authManager *auth.AuthManager,
+	webSocketManager *websocker.WebSocketManager,
 ) *Handlers {
 	return &Handlers{
-		websocketStorage: websocketStorage,
-		auth:             auth,
-		client:           client,
-		mutex:            mutex,
+		webSocketManager: webSocketManager,
+		authManager:      authManager,
 	}
 }
 
@@ -60,11 +49,10 @@ func (h *Handlers) AuthenticationMiddleware(next http.HandlerFunc) http.HandlerF
 		if err != nil {
 			http.Error(w, "Invalid JWT", http.StatusUnauthorized)
 		}
-    //also check if this user exists in userdatabase
+		//also check if this user exists in userdatabase
 
 		ctx := context.WithValue(r.Context(), common.CONTEXTIDKEY, userId)
 
 		next(w, r.WithContext(ctx))
 	}
 }
-

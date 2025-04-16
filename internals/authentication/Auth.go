@@ -8,6 +8,6 @@ type AuthStorage interface {
 	AddAccount(models.SignUpData) error
 	GetUserByEmail(string) (models.AccountModel, error)
 }
-type Auth struct {
+type AuthManager struct {
 	AuthDb AuthStorage
 }

@@ -5,12 +5,12 @@ import (
 	"log"
 	"net/http"
 	"time"
-
 	"github.com/batmanboxer/mockchatapp/common"
 	"github.com/batmanboxer/mockchatapp/models"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
+
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
@@ -19,18 +19,18 @@ var upgrader = websocket.Upgrader{
 }
 
 func (h *Handlers) addClient(chatRoomId string, client *models.Client) {
-	h.mutex.Lock()
-	h.mutex.Unlock()
+	h.webSocketManager.Mutex.Lock()
+	h.webSocketManager.Mutex.Unlock()
 
-	h.client[chatRoomId] = append((h.client[chatRoomId]), client)
+	h.webSocketManager.Client[chatRoomId] = append(( h.webSocketManager.Client[chatRoomId]), client)
 
-	go h.handleMessages(client) 
-  //go h.testMsg(client)
+	go h.handleMessages(client)
+	//go h.testMsg(client)
 	go h.listenMessage(chatRoomId, client)
 }
 
 func (h *Handlers) initialMessage(chatRoomId string, client *models.Client, limit int) {
-	messages, err := h.websocketStorage.GetMessages(chatRoomId, limit, 0)
+	messages, err := h.webSocketManager.GetMessages(chatRoomId, limit, 0)
 	if err != nil {
 		return
 	}
@@ -40,10 +40,10 @@ func (h *Handlers) initialMessage(chatRoomId string, client *models.Client, limi
 }
 
 func (h *Handlers) removeClient(chatRoomId string, userId string) {
-	h.mutex.Lock()
-	defer h.mutex.Unlock()
+	h.webSocketManager.Mutex.Lock()
+	defer h.webSocketManager.Mutex.Unlock()
 
-	clients, ok := h.client[chatRoomId]
+	clients, ok := h.webSocketManager.Client[chatRoomId]
 	if !ok {
 		return
 	}
@@ -60,9 +60,9 @@ func (h *Handlers) removeClient(chatRoomId string, userId string) {
 	}
 
 	if len(updatedClients) == 0 {
-		delete(h.client, chatRoomId)
+		delete (h.webSocketManager.Client, chatRoomId)
 	} else {
-		h.client[chatRoomId] = updatedClients
+		 h.webSocketManager.Client[chatRoomId] = updatedClients
 	}
 }
 
@@ -90,20 +90,20 @@ func (h *Handlers) listenMessage(roomID string, client *models.Client) {
 }
 
 func (h *Handlers) broadcastMessage(roomId string, message string, client *models.Client) {
-	h.mutex.RLock()
-	defer h.mutex.RUnlock()
+	 h.webSocketManager.Mutex.RLock()
+	defer h.webSocketManager.Mutex.RUnlock()
 
-	clients, ok := h.client[roomId]
+	clients, ok :=  h.webSocketManager.Client[roomId]
 	if !ok {
 		return
 	}
-	err := h.websocketStorage.AddMessage(models.MessageModel{
+	err := h.websocketManager.AddMessage(models.MessageModel{
 		RoomId:   roomId,
 		Message:  message,
 		SenderId: client.Id,
 	})
 	if err != nil {
-    log.Println(err.Error())
+		log.Println(err.Error())
 		return
 	}
 
